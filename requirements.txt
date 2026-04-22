@@ -2,6 +2,5 @@ feedparser
 requests
 python-dotenv
 rapidfuzz
-anthropic
 google-genai
 pydantic

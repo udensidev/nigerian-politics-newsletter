@@ -2,7 +2,9 @@ import pytest # type: ignore
 import os
 import json
 import datetime
+from pathlib import Path
 from agents.collector import Collector
+from agents import collector as collector_module
 
 @pytest.fixture
 def collector(tmp_path):
@@ -20,6 +22,10 @@ def collector(tmp_path):
 def test_load_feeds(collector):
     assert len(collector.feeds) == 1
     assert collector.feeds[0]["name"] == "Test Feed"
+
+
+def test_collector_logging_directory_exists():
+    assert Path(collector_module.LOG_DIR).is_dir()
 
 def test_is_false_positive(collector):
     # Should be false positive (sports)
