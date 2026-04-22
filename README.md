@@ -101,7 +101,6 @@ Add these repository secrets before enabling production sends:
 
 ```text
 GEMINI_API_KEY
-USE_AI_FILTER
 SMTP_HOST
 SMTP_PORT
 SMTP_FROM
@@ -110,6 +109,14 @@ SMTP_PASSWORD
 SMTP_USE_TLS
 NEWSLETTER_RECIPIENTS
 ```
+
+Add this repository variable under **Settings > Secrets and variables > Actions > Variables**:
+
+```text
+USE_AI_FILTER
+```
+
+Set `USE_AI_FILTER` to `true` or `false`.
 
 For Gmail, `SMTP_PASSWORD` must be a Google App Password. `SMTP_USERNAME` and `SMTP_PASSWORD` are optional only when your SMTP server does not require authentication. `SMTP_USE_TLS` defaults to `true` in the sender code when unset, but setting it explicitly in GitHub secrets keeps production behavior clear.
 

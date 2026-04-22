@@ -16,7 +16,7 @@ jobs:
 
     env:
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-      USE_AI_FILTER: ${{ secrets.USE_AI_FILTER }}
+      USE_AI_FILTER: ${{ vars.USE_AI_FILTER }}
       SMTP_HOST: ${{ secrets.SMTP_HOST }}
       SMTP_PORT: ${{ secrets.SMTP_PORT }}
       SMTP_FROM: ${{ secrets.SMTP_FROM }}
