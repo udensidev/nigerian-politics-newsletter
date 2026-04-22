@@ -24,6 +24,7 @@ jobs:
       SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
       SMTP_USE_TLS: ${{ secrets.SMTP_USE_TLS }}
       NEWSLETTER_RECIPIENTS: ${{ secrets.NEWSLETTER_RECIPIENTS }}
+      PYTHONPATH: ${{ github.workspace }}
 
     steps:
       - name: Check Central time guard
@@ -41,18 +42,18 @@ jobs:
 
       - name: Check out repository
         if: steps.central_time.outputs.should_run == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Python
         if: steps.central_time.outputs.should_run == 'true'
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
 
       - name: Set up Node.js
         if: steps.central_time.outputs.should_run == 'true'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "20"
           cache: npm
@@ -75,7 +76,7 @@ jobs:
 
       - name: Upload generated artifacts
         if: steps.central_time.outputs.should_run == 'true' && always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: newsletter-${{ github.run_id }}
           path: |

@@ -119,6 +119,8 @@ Each workflow run installs Python and Node dependencies, runs the test suite, se
 python main.py --send-production --confirm-production
 ```
 
+The workflow uses Node 24-compatible GitHub action versions. The `node-version` setting in the workflow controls the project's Node runtime for `npm ci` and MJML, so it can remain pinned separately from the GitHub action runtime.
+
 The workflow uploads generated logs and newsletter files as run artifacts. These files are not committed to the repository.
 
 ## Local Cron Fallback
