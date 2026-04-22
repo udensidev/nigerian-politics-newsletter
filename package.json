@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "render:mjml": "mjml"
+  },
+  "dependencies": {
+    "mjml": "^5.0.1"
+  }
+}
