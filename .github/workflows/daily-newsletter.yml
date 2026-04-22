@@ -1,0 +1,86 @@
+name: Daily Newsletter
+
+on:
+  schedule:
+    # GitHub cron is UTC. These two entries cover 7:00 AM Central across
+    # daylight saving time, and the guard step below skips the non-matching run.
+    - cron: "0 12 * * *"
+    - cron: "0 13 * * *"
+  workflow_dispatch:
+
+jobs:
+  send:
+    name: Build and send newsletter
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      USE_AI_FILTER: ${{ secrets.USE_AI_FILTER }}
+      SMTP_HOST: ${{ secrets.SMTP_HOST }}
+      SMTP_PORT: ${{ secrets.SMTP_PORT }}
+      SMTP_FROM: ${{ secrets.SMTP_FROM }}
+      SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+      SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+      SMTP_USE_TLS: ${{ secrets.SMTP_USE_TLS }}
+      NEWSLETTER_RECIPIENTS: ${{ secrets.NEWSLETTER_RECIPIENTS }}
+
+    steps:
+      - name: Check Central time guard
+        id: central_time
+        shell: bash
+        run: |
+          central_hour="$(TZ=America/Chicago date +%H)"
+          echo "central_hour=${central_hour}" >> "$GITHUB_OUTPUT"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" || "${central_hour}" == "07" ]]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping scheduled run because America/Chicago hour is ${central_hour}, not 07."
+          fi
+
+      - name: Check out repository
+        if: steps.central_time.outputs.should_run == 'true'
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        if: steps.central_time.outputs.should_run == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Set up Node.js
+        if: steps.central_time.outputs.should_run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install Python dependencies
+        if: steps.central_time.outputs.should_run == 'true'
+        run: pip install -r requirements-dev.txt
+
+      - name: Install Node dependencies
+        if: steps.central_time.outputs.should_run == 'true'
+        run: npm ci
+
+      - name: Run tests
+        if: steps.central_time.outputs.should_run == 'true'
+        run: pytest
+
+      - name: Send production newsletter
+        if: steps.central_time.outputs.should_run == 'true'
+        run: python main.py --send-production --confirm-production
+
+      - name: Upload generated artifacts
+        if: steps.central_time.outputs.should_run == 'true' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: newsletter-${{ github.run_id }}
+          path: |
+            logs/
+            data/raw/
+            data/processed/
+            data/formatted/
+          if-no-files-found: ignore

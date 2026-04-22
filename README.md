@@ -91,9 +91,39 @@ venv/bin/python -m agents.sender data/formatted/YYYY-MM-DD.html --production --c
 
 For Gmail, `SMTP_PASSWORD` must be a Google App Password, not your normal Google account password. `SMTP_USERNAME` and `SMTP_PASSWORD` are optional only when your SMTP server does not require authentication. `SMTP_USE_TLS` defaults to `true`; set it to `false` for a local SMTP capture tool.
 
-## Local Cron Production Schedule
+## GitHub Actions Production Schedule
 
-The cron runner is intended for macOS/Linux systems with local cron.
+GitHub Actions is the recommended production scheduler. It runs on GitHub's infrastructure, so the newsletter does not depend on this computer being awake at 7:00 AM.
+
+The workflow in `.github/workflows/daily-newsletter.yml` runs daily at 7:00 AM Central time and can also be started manually from the GitHub Actions tab with **Run workflow**. GitHub schedules are UTC-only, so the workflow has two UTC cron entries and skips whichever one is not 7:00 AM in `America/Chicago`.
+
+Add these repository secrets before enabling production sends:
+
+```text
+GEMINI_API_KEY
+USE_AI_FILTER
+SMTP_HOST
+SMTP_PORT
+SMTP_FROM
+SMTP_USERNAME
+SMTP_PASSWORD
+SMTP_USE_TLS
+NEWSLETTER_RECIPIENTS
+```
+
+For Gmail, `SMTP_PASSWORD` must be a Google App Password. `SMTP_USERNAME` and `SMTP_PASSWORD` are optional only when your SMTP server does not require authentication. `SMTP_USE_TLS` defaults to `true` in the sender code when unset, but setting it explicitly in GitHub secrets keeps production behavior clear.
+
+Each workflow run installs Python and Node dependencies, runs the test suite, sends the production newsletter with:
+
+```bash
+python main.py --send-production --confirm-production
+```
+
+The workflow uploads generated logs and newsletter files as run artifacts. These files are not committed to the repository.
+
+## Local Cron Fallback
+
+The cron runner is available for macOS/Linux systems with local cron, but it is best treated as a fallback. Local cron will not run missed jobs if the computer is asleep at the scheduled time.
 
 The daily production runner appends stdout and stderr to dated files under `logs/` and exits non-zero if collection, editing, formatting, or sending fails.
 
