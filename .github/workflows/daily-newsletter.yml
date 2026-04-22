@@ -40,6 +40,35 @@ jobs:
             echo "Skipping scheduled run because America/Chicago hour is ${central_hour}, not 07."
           fi
 
+      - name: Validate production secrets
+        if: steps.central_time.outputs.should_run == 'true'
+        shell: bash
+        env:
+          REQUIRED_SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          REQUIRED_SMTP_FROM: ${{ secrets.SMTP_FROM }}
+          REQUIRED_NEWSLETTER_RECIPIENTS: ${{ secrets.NEWSLETTER_RECIPIENTS }}
+          REQUIRED_SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          REQUIRED_SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+        run: |
+          echo "Workflow: ${{ github.workflow }}"
+          echo "Event: ${{ github.event_name }}"
+          echo "Ref: ${{ github.ref }}"
+          echo "SHA: ${{ github.sha }}"
+
+          missing=()
+          [[ -n "$REQUIRED_SMTP_HOST" ]] || missing+=("SMTP_HOST")
+          [[ -n "$REQUIRED_SMTP_FROM" ]] || missing+=("SMTP_FROM")
+          [[ -n "$REQUIRED_NEWSLETTER_RECIPIENTS" ]] || missing+=("NEWSLETTER_RECIPIENTS")
+          [[ -n "$REQUIRED_SMTP_USERNAME" ]] || missing+=("SMTP_USERNAME")
+          [[ -n "$REQUIRED_SMTP_PASSWORD" ]] || missing+=("SMTP_PASSWORD")
+
+          if (( ${#missing[@]} > 0 )); then
+            joined="$(printf ", %s" "${missing[@]}")"
+            joined="${joined:2}"
+            echo "::error::Missing required GitHub Actions secrets: ${joined}"
+            exit 1
+          fi
+
       - name: Check out repository
         if: steps.central_time.outputs.should_run == 'true'
         uses: actions/checkout@v6

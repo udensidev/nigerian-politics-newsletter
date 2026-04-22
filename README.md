@@ -123,6 +123,8 @@ The workflow uses Node 24-compatible GitHub action versions. The `node-version` 
 
 The workflow uploads generated logs and newsletter files as run artifacts. These files are not committed to the repository.
 
+If the workflow reports missing secrets, confirm the values were added as **Repository secrets** under **Settings > Secrets and variables > Actions**, not as Codespaces secrets or repository variables. After changing secrets, start a new manual run from the `main` branch and confirm the workflow log shows the latest commit SHA.
+
 ## Local Cron Fallback
 
 The cron runner is available for macOS/Linux systems with local cron, but it is best treated as a fallback. Local cron will not run missed jobs if the computer is asleep at the scheduled time.
