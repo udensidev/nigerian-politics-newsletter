@@ -102,8 +102,12 @@ class Collector:
         twenty_four_hours_ago = now - datetime.timedelta(hours=26)
         
         for feed in self.feeds:
-            name = feed.get("name")
+            name = feed.get("name") or "Unknown Feed"
             url = feed.get("url")
+            if not url:
+                logger.warning(f"Skipping feed with missing url: {name}")
+                continue
+
             logger.info(f"Fetching feed: {name} ({url})")
             
             try:

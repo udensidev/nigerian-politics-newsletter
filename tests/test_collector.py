@@ -172,3 +172,27 @@ def test_fetch_articles_mocked(mocker, collector):
     # Should only return 1 article because the other is too old (> 26 hours)
     assert len(articles) == 1
     assert articles[0]["title"] == "Politics News 1"
+
+
+def test_fetch_articles_skips_feed_missing_url(tmp_path, mocker):
+    feeds_file = tmp_path / "feeds.json"
+    feeds_file.write_text(json.dumps([
+        {"name": "Missing URL"},
+        {"name": "Valid Feed", "url": "https://example.com/rss"}
+    ]))
+    collector = Collector(feeds_path=str(feeds_file))
+
+    mock_response = mocker.Mock()
+    mock_response.content = b"""<?xml version="1.0" encoding="UTF-8" ?>
+    <rss version="2.0">
+    <channel>
+    </channel>
+    </rss>
+    """
+    mock_get = mocker.patch('requests.get', return_value=mock_response)
+
+    articles = collector.fetch_articles()
+
+    assert articles == []
+    mock_get.assert_called_once()
+    assert mock_get.call_args.args[0] == "https://example.com/rss"
