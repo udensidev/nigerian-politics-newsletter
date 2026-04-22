@@ -132,32 +132,6 @@ The workflow uploads generated logs and newsletter files as run artifacts. These
 
 If the workflow reports missing secrets, confirm the values were added as **Repository secrets** under **Settings > Secrets and variables > Actions**, not as Codespaces secrets or repository variables. After changing secrets, start a new manual run from the `main` branch and confirm the workflow log shows the latest commit SHA.
 
-## Local Cron Fallback
-
-The cron runner is available for macOS/Linux systems with local cron, but it is best treated as a fallback. Local cron will not run missed jobs if the computer is asleep at the scheduled time.
-
-The daily production runner appends stdout and stderr to dated files under `logs/` and exits non-zero if collection, editing, formatting, or sending fails.
-
-Run it manually once after configuring `.env`:
-
-```bash
-scripts/run_daily_newsletter.sh
-```
-
-Example cron entry for a daily 7:00 AM local run:
-
-```cron
-0 7 * * * /path/to/nigerian-politics-newsletter/scripts/run_daily_newsletter.sh
-```
-
-After the scheduled run, inspect the dated log:
-
-```bash
-tail -100 logs/newsletter-YYYY-MM-DD.log
-```
-
-A `SUCCESS` line confirms the production send completed. A `FAILED` line includes the exit code and means no later script steps completed.
-
 ## Outputs
 
 Only `data/feeds.json` is tracked in git. The pipeline creates output directories locally as needed, and generated data/log directories are ignored.
