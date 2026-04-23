@@ -31,13 +31,27 @@ jobs:
         id: central_time
         shell: bash
         run: |
-          central_hour="$(TZ=America/Chicago date +%H)"
-          echo "central_hour=${central_hour}" >> "$GITHUB_OUTPUT"
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" || "${central_hour}" == "07" ]]; then
+          central_offset="$(TZ=America/Chicago date +%z)"
+          scheduled_cron="${{ github.event.schedule }}"
+
+          case "${central_offset}" in
+            -0500) expected_cron="0 12 * * *" ;;
+            -0600) expected_cron="0 13 * * *" ;;
+            *)
+              echo "::error::Unexpected America/Chicago UTC offset: ${central_offset}"
+              exit 1
+              ;;
+          esac
+
+          echo "central_offset=${central_offset}" >> "$GITHUB_OUTPUT"
+          echo "expected_cron=${expected_cron}" >> "$GITHUB_OUTPUT"
+          echo "scheduled_cron=${scheduled_cron}" >> "$GITHUB_OUTPUT"
+
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" || "${scheduled_cron}" == "${expected_cron}" ]]; then
             echo "should_run=true" >> "$GITHUB_OUTPUT"
           else
             echo "should_run=false" >> "$GITHUB_OUTPUT"
-            echo "Skipping scheduled run because America/Chicago hour is ${central_hour}, not 07."
+            echo "Skipping scheduled run because ${scheduled_cron} fired, but America/Chicago offset ${central_offset} expects ${expected_cron} for 7:00 AM Central."
           fi
 
       - name: Validate production secrets
